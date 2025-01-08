@@ -1,0 +1,7 @@
+numpy
+spacy
+faiss
+pandas
+sentences_transformers
+re
+requests
