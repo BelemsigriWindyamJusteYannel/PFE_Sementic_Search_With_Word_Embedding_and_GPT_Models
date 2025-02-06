@@ -81,7 +81,7 @@ if prompt:=st.chat_input("what's up?"):
     # We will add the user message to the history
     st.session_state.messages.append({"role":"user","content":prompt})
 
-    response = f"Echo : {get_model_response(prompt)}"
+    response = f"Assistant : {get_model_response(prompt)}"
     # We are now about to display the response
     with st.chat_message("assistart"):
         st.markdown(response)
