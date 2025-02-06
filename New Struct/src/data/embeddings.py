@@ -1,12 +1,14 @@
 from sentence_transformers import SentenceTransformer
 from preprocess import chunks
 
+# Chunks
 chunks = chunks()
 
-model = SentenceTransformer("paraphrase-multilingual-mpnet-base-v2")
-
+# Model from sentenceTransformer and embeddings creation
+model = SentenceTransformer("BAAI/bge-m3")
 embeddings = model.encode(chunks)
 
+# Saving embeddings in chromaDB dataBase
 import chromadb,os
 
 # Initialiser la base de données Chroma
@@ -20,22 +22,14 @@ if not os.path.exists(db_path):
 
 client = chromadb.PersistentClient(path=db_path)
 
-try:
-    # Vérifier si la collection existe
-    collection = client.get_collection(name="embeddings_collection")
-    print("Collection exists. Using existing collection.")
-except Exception:
-    # Créer la collection si elle n'existe pas
-    collection = client.create_collection(name="embeddings_collection")
-    print("Collection created. Adding embeddings.")
+# Collection creation
+collection = client.create_collection(name="embeddings_collection")
+print("Collection created. Adding embeddings.")
 
-    # Ajouter les documents par batch
-    collection.add(
-        documents=chunks,  # Données textuelles
-        embeddings=embeddings,  # Vecteurs d'embeddings
-        metadatas=[{"text": text} for text in chunks],  # Métadonnées
-        ids=[str(i) for i in range(len(chunks))]  # Identifiants uniques
-    )
-
-def collection():
-    return collection
+# Add embeddings and chunks in the dataBase
+collection.add(
+    documents=chunks,  # Données textuelles
+    embeddings=embeddings,  # Vecteurs d'embeddings
+    metadatas=[{"text": text} for text in chunks],  # Métadonnées
+    ids=[str(i) for i in range(len(chunks))]  # Identifiants uniques
+)

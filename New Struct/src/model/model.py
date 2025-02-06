@@ -1,28 +1,9 @@
-import chromadb,os
+import chromadb,requests,os
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer("paraphrase-multilingual-mpnet-base-v2")
-# Initialiser la base de données Chroma
 
-db_path = os.path.abspath("./../data/chromadb_data_base")
-client = chromadb.PersistentClient(path=db_path)
-collection = client.get_collection(name="embeddings_collection")
-
-# Encodage de la requête de l'utilisateur
-
-def semantique_search(query):
-    # Recherche dans ChromaDB
-    query_embedding = model.encode(query)
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=6 # Nombre de résultats à retourner
-    )
-    return results['documents'][0]
-
-
-import requests
-
-def send_question_lmstudio_LLM(question, contexte):
+# Utilisation de LMStudio pour la génération de texte
+def send_question_to_lmstudio_LLM(question, contexte):
     """
     Pose une question au modèle déployé sur LMStudio et génère une réponse.
     """
@@ -40,7 +21,7 @@ def send_question_lmstudio_LLM(question, contexte):
     payload = {
         "messages": messages,
         "temperature": 1,
-        "max_tokens": 200,
+        "max_tokens": 300,
         "stop": ["\n"]
     }
 
@@ -56,11 +37,52 @@ def send_question_lmstudio_LLM(question, contexte):
         return f"Erreur lors de l'appel à l'API LMStudio : {e}"
 
 
-query = "quelle est la durée de stage?"
+def get_model_response(query):
+    model = SentenceTransformer("BAAI/bge-m3")
+    # Initialiser la base de données Chroma
 
-results = semantique_search(query)
+    db_path = os.path.abspath("./../data/chromadb_data_base")
+    client = chromadb.PersistentClient(path=db_path)
+    collection = client.get_collection(name="embeddings_collection")
+    print(collection)
 
-#Sending to LLM studio and obtaining the result
-reponse = send_question_lmstudio_LLM(query, results)
+    # embeddings gettings
+    data = collection.get(include=["embeddings"])
+    collect_parag = collection.get(include=["documents"])
 
-print("Réponse de LMStudio est : "+ reponse)
+
+    embeddings = data["embeddings"]
+    paragraphes = collect_parag["documents"]
+
+    import faiss
+    import numpy as np
+    # --------------------------------------------------------------------------------------------
+    # Indexation et recherche sémantique
+
+    # Initialiser un index FAISS
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+
+    # Ajouter les embeddings à l'index
+    index.add(np.array(embeddings))
+
+    # Encodage de la requête de l'utilisateur
+    query_embedding = model.encode([query])
+
+    distances, indices = index.search(query_embedding, k=8)  # Plus de résultats pour un contexte étendu
+
+    # Obtenir les paragraphes correspondants
+    results = [paragraphes[i] for i in indices[0]]
+
+    # Joindre les paragraphes pour former un contexte complet
+    context = " ".join(results[:len(results)])
+
+    #Sending to LLM studio and obtaining the result
+    response = send_question_to_lmstudio_LLM(query, context)
+    
+    return response
+        
+
+
+
+# get_model_response()

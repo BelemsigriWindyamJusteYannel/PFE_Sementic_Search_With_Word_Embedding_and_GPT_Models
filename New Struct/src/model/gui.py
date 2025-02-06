@@ -68,7 +68,7 @@ def __main__():
         # Envoi de la requête à l'API (simulation ici)
         with st.spinner("Réponse en cours..."):
           #response = get_model_response(prompt)  # Appel réel à votre API
-           response = "Salut ! Comment puis-je vous aider ?"
+           response = "Salut ! Comment puis-je vous aider ?" # Réponse simulée
         # Ajout de la réponse à l'historique
         st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": response})
         
