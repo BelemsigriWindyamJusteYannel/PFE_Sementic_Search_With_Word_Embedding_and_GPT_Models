@@ -1,17 +1,6 @@
-import os
-import sys
 import streamlit as st
-from sentence_transformers import SentenceTransformer
-
-
-
-# Charger le modèle d'embeddings
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
-# Ajouter le chemin du dossier parent au sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from model import semantique_search
-from model import send_question_lmstudio_LLM
+from model import get_model_response
+import datetime
 
 # Fonction pour charger le CSS
 def load_css(file):
@@ -19,34 +8,71 @@ def load_css(file):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # Charger le CSS
-css_file ="./../css/style.css"
+css_file = "./../css/style.css"
 load_css(css_file)
 
+# Initialisation de l'historique des conversations
+if "chats" not in st.session_state:
+    st.session_state.chats = {}
+if "current_chat" not in st.session_state:
+    # Créer automatiquement un chat au démarrage
+    chat_id = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    st.session_state.chats[chat_id] = []
+    st.session_state.current_chat = chat_id
+
 # Fonction principale
-def __main__() :
-    
-    st.title("📚Règlement Intérieur des Évaluations à l'EST")
+def __main__():
+    st.markdown("<h1 class='fixed-title'>ESTF: Règlement des Évaluations📚</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
-    # Champ de saisie de la requête utilisateur
-    query = st.text_input("🔍 **Entrez votre requête de recherche :**")
-
-    # Si une requête est saisie
-    if query:
-        st.markdown("### Résultat de la recherche:")
-
-        # Generer l'embedding de la requête
-        results = semantique_search(query)
-
+    
+    # Sidebar pour l'historique et nouveau chat
+    with st.sidebar:
+        st.subheader("Historique des conversations")
         
-        # Obtenir une réponse en utilisant LMStudio
-        reponse = send_question_lmstudio_LLM(query, results)
+        # Bouton pour démarrer un nouveau chat
+        if st.button("🆕 Nouveau Chat"):
+            chat_id = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            st.session_state.chats[chat_id] = []
+            st.session_state.current_chat = chat_id
         
-        #st.success(f"{results}")
-        st.success(f"{reponse}")
-    else:
-        st.info("Veuillez entrer une requête dans le champ ci-dessus.")
-
+        # Affichage des anciens chats et sélection d'un chat
+        for chat_id in sorted(st.session_state.chats.keys(), reverse=True):
+            if st.button(chat_id):
+                st.session_state.current_chat = chat_id
+    
+    # Vérification et sélection du chat courant
+    if st.session_state.current_chat is None:
+        return
+    
+    # Initialisation du chat courant s'il n'existe pas
+    if st.session_state.current_chat not in st.session_state.chats:
+        st.session_state.chats[st.session_state.current_chat] = []
+    
+    # Affichage de l'historique des messages
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    for msg in st.session_state.chats[st.session_state.current_chat]:
+        if msg["role"] == "user":
+            st.markdown(f'<div class="chat-wrapper"><div class="user-message"> <div>{msg["content"]}</div> 🧑 </div></div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="chat-wrapper"><div class="bot-message">🤖 <div>{msg["content"]}</div></div></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Entrée utilisateur
+    prompt = st.chat_input("Entrer votre requête...")
+    if prompt:
+        # Ajout du message utilisateur à l'historique
+        st.session_state.chats[st.session_state.current_chat].append({"role": "user", "content": prompt})
+        
+        st.markdown(f'<div class="chat-wrapper"><div class="user-message"> <div>{prompt}</div> 🧑 </div></div>', unsafe_allow_html=True)
+        
+        # Envoi de la requête à l'API (simulation ici)
+        with st.spinner("Réponse en cours..."):
+          #response = get_model_response(prompt)  # Appel réel à votre API
+           response = "Salut ! Comment puis-je vous aider ?"
+        # Ajout de la réponse à l'historique
+        st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": response})
+        
+        st.markdown(f'<div class="chat-wrapper"><div class="bot-message">🤖 <div>{response}</div></div></div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     __main__()
