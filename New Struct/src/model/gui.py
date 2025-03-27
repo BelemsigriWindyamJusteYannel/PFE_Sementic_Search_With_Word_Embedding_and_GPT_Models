@@ -83,8 +83,8 @@ def __main__():
 
         # 🤖 Simulation de la réponse de l'IA
         with st.spinner("Réponse en cours..."):
-            response = "Salut ! Comment puis-je vous aider ?"  # Réponse simulée
-            #response = get_model_response(prompt)  # Appel réel à  l'API LMStudio. 
+            #response = "Salut ! Comment puis-je vous aider ?"  # Réponse simulée
+            response = get_model_response(prompt)  # Appel réel à  l'API LMStudio. 
         # 📝 Ajout de la réponse du bot
         st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": response})
         st.markdown(f'<div class="chat-wrapper"><div class="bot-message">🤖 <div>{response}</div></div></div>', unsafe_allow_html=True)
