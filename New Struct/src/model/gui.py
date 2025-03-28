@@ -35,7 +35,7 @@ def generate_chat_title(messages):
 
 # Fonction principale
 def __main__():
-    st.markdown("<div class='fixed-title'><h1>Maroc : Loi de Commerce📚</h1></div>", unsafe_allow_html=True)
+    st.markdown("<div class='fixed-title'><h1>ESTF: Règlement des Évaluations📚</h1></div>", unsafe_allow_html=True)
     st.markdown("---")
     
     # Sidebar pour l'historique et nouveau chat ..
@@ -79,9 +79,9 @@ def __main__():
         # Envoi de la requête à l'API
         with st.spinner("Réponse en cours..."):
             #response = "Salut ! Comment puis-je vous aider ?"  # Réponse simulée
-            response = get_model_response(prompt)  # Appel réel à  l'API LMStudio. 
-        # 📝 Ajout de la réponse du bot
-        st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": response})
+            response = get_model_response(prompt)  # Genrer une réponse avec le modèle 
+        # Ajout de la réponse du bot
+        st.session_state.chats[st.session_state.current_chat]["messages"].append({"role": "assistant", "content": response})
         st.markdown(f'<div class="chat-wrapper"><div class="bot-message">🤖 <div>{response}</div></div></div>', unsafe_allow_html=True)
         
         # Mise à jour du titre du chat

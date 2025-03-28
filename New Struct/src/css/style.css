@@ -19,6 +19,7 @@ h1 {
     font-weight: 600;
     color: #ffffff;
 }
+
 .content {
     margin-top: 300px;
 }
@@ -47,7 +48,7 @@ h1 {
     padding: 10px;
     border-radius: 10px;
     max-width: 70%;
-    font-size: 18px;
+    font-size: 18px; 
 }
 
 .user-message {
@@ -55,6 +56,7 @@ h1 {
     color: white;
     margin-left: auto;
 }
+
 
 .bot-message {
     background-color: #31313549;
