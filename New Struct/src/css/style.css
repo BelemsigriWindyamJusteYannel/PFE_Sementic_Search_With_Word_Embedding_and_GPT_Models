@@ -47,7 +47,7 @@ h1 {
 .user-message, .bot-message {
     padding: 10px;
     border-radius: 10px;
-    max-width: 70%;
+    max-width: auto;
     font-size: 18px; 
 }
 

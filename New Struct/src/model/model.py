@@ -20,7 +20,7 @@ def generate_final_answer(question, best_responses):
         f"Voici un texte. Répondez à la question suivante en utilisant ce contexte : {context}\n\nQuestion : {question}\nRéponse :"
     )
 
-    output = model(prompt, max_tokens=200, temperature=1)
+    output = model(prompt, max_tokens=200, temperature=0.3)
     return output["choices"][0]["text"].strip()
 
 
