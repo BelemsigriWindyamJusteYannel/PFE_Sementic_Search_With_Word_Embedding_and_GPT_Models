@@ -1,6 +1,7 @@
 import streamlit as st
 from model import get_model_response
 import datetime
+import re
 
 # Fonction pour charger le CSS
 def load_css(file):
@@ -11,83 +12,81 @@ def load_css(file):
 css_file = "./../css/style.css"
 load_css(css_file)
 
-# Initialisation des conversations
+# Initialisation de l'historique des conversations
 if "chats" not in st.session_state:
     st.session_state.chats = {}
-if "chat_titles" not in st.session_state:  # Stocker les titres des conversations
-    st.session_state.chat_titles = {}
 if "current_chat" not in st.session_state:
     chat_id = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    st.session_state.chats[chat_id] = []
-    st.session_state.chat_titles[chat_id] = "Nouvelle conversation"
+    st.session_state.chats[chat_id] = {"messages": [], "title": "Nouvelle conversation"}
     st.session_state.current_chat = chat_id
 
-# Fonction pour mettre à jour le titre du chat
-def update_chat_title(chat_id):
-    messages = st.session_state.chats[chat_id]
-    if messages:
-        first_user_message = next((msg["content"] for msg in messages if msg["role"] == "user"), None)
-        if first_user_message:
-            title = " ".join(first_user_message.split()[:5]) + ("..." if len(first_user_message.split()) > 5 else "")
-            st.session_state.chat_titles[chat_id] = title
-    else:
-        st.session_state.chat_titles[chat_id] = "Nouvelle conversation"
+# Fonction pour générer un titre basé sur le contenu de la conversation
+def generate_chat_title(messages):
+    if not messages:
+        return "Nouvelle conversation"
+    
+    text = " ".join(msg["content"] for msg in messages if msg["role"] == "user")
+    text = re.sub(r'[^\w\s]', '', text)  # Supprimer les caractères spéciaux
+    words = text.split()
+    
+    if len(words) >= 5:
+        return " ".join(words[:5]) + "..."
+    return " ".join(words) if words else "Nouvelle conversation"
 
 # Fonction principale
 def __main__():
-    st.markdown("<h1 class='fixed-title'>ESTF: Règlement des Évaluations📚</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='fixed-title'><h1>Maroc : Loi de Commerce📚</h1></div>", unsafe_allow_html=True)
     st.markdown("---")
     
-    #Sidebar : Historique des conversations
+    # Sidebar pour l'historique et nouveau chat ..
     with st.sidebar:
-        st.subheader("Historique des recherches")
-
-        # 🆕 Bouton pour un nouveau chat
-        if st.button("Nouveau Chat"):
+        st.subheader("Historique des conversations")
+        
+        # Bouton pour démarrer un nouveau chat
+        if st.button("🆕 Nouveau Chat"):
             chat_id = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            st.session_state.chats[chat_id] = []
-            st.session_state.chat_titles[chat_id] = "Nouvelle conversation"
+            st.session_state.chats[chat_id] = {"messages": [], "title": "Nouvelle conversation"}
             st.session_state.current_chat = chat_id
-
-        # 📂 Liste des anciens chats avec leur titre
-        for chat_id, title in sorted(st.session_state.chat_titles.items(), key=lambda x: x[0], reverse=True):
-            if st.button(title):
+        
+        # Affichage des anciens chats avec titres générés
+        for chat_id, chat_data in sorted(st.session_state.chats.items(), reverse=True):
+            if st.button(chat_data["title"]):
                 st.session_state.current_chat = chat_id
-
+    
     # Vérification et sélection du chat courant
     if st.session_state.current_chat is None:
         return
-
-    # Initialisation du chat courant s'il n'existe pas
-    if st.session_state.current_chat not in st.session_state.chats:
-        st.session_state.chats[st.session_state.current_chat] = []
-
-    # 📜 Affichage de l'historique des messages
+    
+    chat_data = st.session_state.chats[st.session_state.current_chat]
+    messages = chat_data["messages"]
+    
+    # Affichage de l'historique des messages
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-    for msg in st.session_state.chats[st.session_state.current_chat]:
+    for msg in messages:
         if msg["role"] == "user":
             st.markdown(f'<div class="chat-wrapper"><div class="user-message"> <div>{msg["content"]}</div> 🧑 </div></div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="chat-wrapper"><div class="bot-message">🤖 <div>{msg["content"]}</div></div></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
-
-    # 💬 Entrée utilisateur
+    
+    # Entrée utilisateur
     prompt = st.chat_input("Entrer votre requête...")
     if prompt:
-        # 📝 Ajout du message utilisateur
-        st.session_state.chats[st.session_state.current_chat].append({"role": "user", "content": prompt})
+        messages.append({"role": "user", "content": prompt})
+        
         st.markdown(f'<div class="chat-wrapper"><div class="user-message"> <div>{prompt}</div> 🧑 </div></div>', unsafe_allow_html=True)
-
-        # 🔄 Mise à jour du titre du chat
-        update_chat_title(st.session_state.current_chat)
-
-        # 🤖 Simulation de la réponse de l'IA
+        
+        # Envoi de la requête à l'API
         with st.spinner("Réponse en cours..."):
-            response = "Salut ! Comment puis-je vous aider ?"  # Réponse simulée
-            #response = get_model_response(prompt)  # Appel réel à  l'API LMStudio. 
-        # 📝 Ajout de la réponse du bot
-        st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": response})
+            response = "Salut ! Comment puis-je vous aider ?" # Réponse simulée
+            #response = get_model_response(prompt)
+        
+        messages.append({"role": "assistant", "content": response})
+        
         st.markdown(f'<div class="chat-wrapper"><div class="bot-message">🤖 <div>{response}</div></div></div>', unsafe_allow_html=True)
+        
+        # Mise à jour du titre du chat
+        chat_data["title"] = generate_chat_title(messages)
 
 if __name__ == "__main__":
     __main__()
