@@ -24,9 +24,8 @@ client = chromadb.PersistentClient(path=db_path)
 
 # Collection creation
 collection = client.create_collection(name="embeddings_collection")
-print("Collection created. Adding embeddings.")
 
-# Add embeddings and chunks in the dataBase
+# Ajout des embeddings et chunks dans la base de données ChromaDb
 collection.add(
     documents=chunks,  # Données textuelles
     embeddings=embeddings,  # Vecteurs d'embeddings

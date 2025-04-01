@@ -1,3 +1,5 @@
 PyMuPDF
 spacy
 chromadb
+sentence-transformers
+llama-cpp-python

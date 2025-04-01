@@ -1,4 +1,4 @@
-import chromadb,requests,os
+import chromadb,os
 from sentence_transformers import SentenceTransformer
 from llama_cpp import Llama
 
@@ -11,13 +11,12 @@ from sentence_transformers import SentenceTransformer, util
 semantic_model = SentenceTransformer("BAAI/bge-m3")
 
 def generate_final_answer(question, best_responses):
-    """ Génère une réponse bien structurée en utilisant Llama/Mistral. """
+    """ Génère une réponse bien structurée en utilisant Mistral. """
     context = "\n".join(best_responses)
     
     prompt = (
-        f"Tu es un assistant au service de scolarité de l école supérieure de technologie de fès"
-        f"Vous êtes un assistant qui répond aux questions basées sur un texte réglementaire."
-        f"Voici un texte. Répondez à la question suivante en utilisant ce contexte : {context}\n\nQuestion : {question}\nRéponse :"
+        f"Tu es un assistant au service de scolarité de l école supérieure de technologie de fès qui répond aux questions basées sur un texte réglementaire."
+        f"Voici le texte. Répondez à la question suivante en utilisant ce contexte : {context}\n\nQuestion : {question}\nRéponse :"
     )
 
     output = model(prompt, max_tokens=200, temperature=0.3)
@@ -36,7 +35,7 @@ def get_model_response(query):
     # Recherche dans ChromaDB
     results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=5 # Nombre de résultats à retourner
+        n_results=2 # Nombre de résultats à retourner
     )
 
     response = generate_final_answer(query, results['documents'][0])

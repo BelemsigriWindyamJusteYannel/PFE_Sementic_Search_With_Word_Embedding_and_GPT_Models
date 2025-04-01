@@ -1,8 +1,8 @@
-import fitz,os  # PyMuPDF
+import fitz  # PyMuPDF
 
 
 def text_extract_from():
-    doc = fitz.open(os.path.exists("ReglementEvalEST.pdf"))
+    doc = fitz.open("ReglementEvalEST.pdf")
     text = ""
     for page in doc:
         text += page.get_text()  # Extract text from each page
