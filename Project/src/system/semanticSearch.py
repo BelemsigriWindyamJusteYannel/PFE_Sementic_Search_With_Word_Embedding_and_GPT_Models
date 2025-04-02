@@ -3,10 +3,10 @@ from sentence_transformers import SentenceTransformer
 from llama_cpp import Llama
 
 # 🔹 Chargement du modèle GGUF Mistral avec llama-cpp
-model_path = "models/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+model_path = "model/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 model = Llama(model_path=model_path)
 
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 # 
 semantic_model = SentenceTransformer("BAAI/bge-m3")
 
@@ -42,7 +42,5 @@ def get_model_response(query):
     
     return response
         
-
-
 
 # get_model_response()

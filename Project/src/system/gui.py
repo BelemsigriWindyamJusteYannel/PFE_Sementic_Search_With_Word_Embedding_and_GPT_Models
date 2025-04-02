@@ -1,5 +1,5 @@
 import streamlit as st
-from model import get_model_response
+from semanticSearch import get_model_response
 import datetime
 import re
 
